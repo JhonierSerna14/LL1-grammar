@@ -4,10 +4,10 @@ import (
 	"Project/controllers"
 	"Project/models"
 	"encoding/json"
-	"fmt"
 	"github.com/gen2brain/dlgs"
 	"log"
 	"os"
+	"os/exec"
 )
 
 func main() {
@@ -15,12 +15,6 @@ func main() {
 	controller := controllers.NewGrammarController()
 	controller.SetGrammar(grammar)
 	exportToJSON(controller.GetGrammar())
-}
-
-func printMapStringSlice(m map[string][]string) {
-	for key, value := range m {
-		fmt.Printf("%s: %v\n", key, value)
-	}
 }
 
 func openJson() models.Grammar {
@@ -47,7 +41,6 @@ func openJson() models.Grammar {
 
 func exportToJSON(grammar models.Grammar) error {
 	fileName, _, err := dlgs.File("Save JSON file", "", true)
-	fmt.Println(fileName)
 	if err != nil {
 		return err
 	}
@@ -61,6 +54,8 @@ func exportToJSON(grammar models.Grammar) error {
 	encoder.SetEscapeHTML(false)
 	encoder.SetIndent("", "    ")
 	err = encoder.Encode(grammar)
+	var command = exec.Command("cmd", "/C", "start", "opera", fileName+"/Result.json")
+	err = command.Start()
 	if err != nil {
 		return err
 	}
