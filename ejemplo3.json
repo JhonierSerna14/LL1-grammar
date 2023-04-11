@@ -1,0 +1,75 @@
+{
+  "initial": "E",
+  "terminals": [
+    "+",
+    "id",
+    "(",
+    ")",
+    "*"
+  ],
+  "nonTerminals": [
+    "E",
+    "E'",
+    "T",
+    "T'",
+    "F"
+  ],
+  "productions": [
+    {
+      "left": "E",
+      "right": [
+        "T",
+        "E'"
+      ]
+    },
+    {
+      "left": "E'",
+      "right": [
+        "+",
+        "T",
+        "E'"
+      ]
+    },
+    {
+      "left": "E'",
+      "right": [
+        "λ"
+      ]
+    },
+    {
+      "left": "T",
+      "right": [
+        "F",
+        "T'"
+      ]
+    },
+    {
+      "left": "T'",
+      "right": [
+        "*",
+        "F",
+        "T'"
+      ]
+    },
+    {
+      "left": "T'",
+      "right": [
+        "λ"
+      ]
+    },
+    {
+      "left": "F",
+      "right": [
+        "id"
+      ]
+    },
+    {
+      "left": "F",
+      "right": [
+        "(",
+        "E",
+        ")"
+      ]
+    }
+  ]
+}

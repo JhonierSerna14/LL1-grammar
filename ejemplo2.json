@@ -1,0 +1,145 @@
+{
+  "initial": "S",
+  "terminals": [
+    "xx",
+    "p",
+    "q",
+    "xy",
+    "id",
+    "fx",
+    "d"
+  ],
+  "nonTerminals": [
+    "S",
+    "S'",
+    "A",
+    "A'",
+    "B",
+    "B'",
+    "C",
+    "C'",
+    "D"
+  ],
+  "productions": [
+    {
+      "left": "S",
+      "right": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "S'"
+      ]
+    },
+    {
+      "left": "S'",
+      "right": [
+        "xx",
+        "S'"
+      ]
+    },
+    {
+      "left": "S'",
+      "right": [
+        "λ"
+      ]
+    },
+    {
+      "left": "A",
+      "right": [
+        "p",
+        "A'"
+      ]
+    },
+    {
+      "left": "A",
+      "right": [
+        "B",
+        "D",
+        "A'"
+      ]
+    },
+    {
+      "left": "A",
+      "right": [
+        "λ"
+      ]
+    },
+    {
+      "left": "A'",
+      "right": [
+        "p",
+        "B",
+        "A'"
+      ]
+    },
+    {
+      "left": "A'",
+      "right": [
+        "λ"
+      ]
+    },
+    {
+      "left": "B",
+      "right": [
+        "q",
+        "B'"
+      ]
+    },
+    {
+      "left": "B",
+      "right": [
+        "λ"
+      ]
+    },
+    {
+      "left": "B'",
+      "right": [
+        "C",
+        "xy",
+        "xx"
+      ]
+    },
+    {
+      "left": "B'",
+      "right": [
+        "B",
+        "xy",
+        "xx"
+      ]
+    },
+    {
+      "left": "C",
+      "right": [
+        "id",
+        "C'"
+      ]
+    },
+    {
+      "left": "C'",
+      "right": [
+        "d",
+        "S",
+        "fx"
+      ]
+    },
+    {
+      "left": "C'",
+      "right": [
+        "λ"
+      ]
+    },
+    {
+      "left": "D",
+      "right": [
+        "d"
+      ]
+    },
+    {
+      "left": "D",
+      "right": [
+        "λ"
+      ]
+    }
+  ]
+}
