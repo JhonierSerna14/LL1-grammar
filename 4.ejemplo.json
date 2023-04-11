@@ -1,0 +1,173 @@
+{
+  "initial": "AL",
+  "terminals": [
+    "id",
+    ":",
+    "=",
+    "or",
+    "and",
+    "not",
+    "(",
+    ")",
+    "true",
+    "false",
+    "<",
+    ">",
+    "num"
+  ],
+  "nonTerminals": [
+    "AL",
+    "P",
+    "D",
+    "C",
+    "S",
+    "REL",
+    "REL'",
+    "REL''",
+    "OP"
+  ],
+  "productions": [
+    {
+      "left": "AL",
+      "right": [
+        "id",
+        ":",
+        "=",
+        "P"
+      ]
+    },
+    {
+      "left": "P",
+      "right": [
+        "P",
+        "or",
+        "D"
+      ]
+    },
+    {
+      "left": "P",
+      "right": [
+        "D"
+      ]
+    },
+    {
+      "left": "D",
+      "right": [
+        "D",
+        "and",
+        "C"
+      ]
+    },
+    {
+      "left": "D",
+      "right": [
+        "C"
+      ]
+    },
+    {
+      "left": "C",
+      "right": [
+        "S"
+      ]
+    },
+    {
+      "left": "C",
+      "right": [
+        "not",
+        "(",
+        "P",
+        ")"
+      ]
+    },
+    {
+      "left": "S",
+      "right": [
+        "(",
+        "P",
+        ")"
+      ]
+    },
+    {
+      "left": "S",
+      "right": [
+        "OP",
+        "REL",
+        "OP"
+      ]
+    },
+    {
+      "left": "S",
+      "right": [
+        "true"
+      ]
+    },
+    {
+      "left": "S",
+      "right": [
+        "false"
+      ]
+    },
+    {
+      "left": "REL",
+      "right": [
+        "<",
+        "REL'"
+      ]
+    },
+    {
+      "left": "REL",
+      "right": [
+        ">",
+        "REL''"
+      ]
+    },
+    {
+      "left": "REL",
+      "right": [
+        "="
+      ]
+    },
+    {
+      "left": "REL'",
+      "right": [
+        "="
+      ]
+    },
+    {
+      "left": "REL'",
+      "right": [
+        ">"
+      ]
+    },
+    {
+      "left": "REL'",
+      "right": [
+        "λ"
+      ]
+    },
+    {
+      "left": "REL''",
+      "right": [
+        "="
+      ]
+    },
+    {
+      "left": "REL''",
+      "right": [
+        "λ"
+      ]
+    },
+    {
+      "left": "OP",
+      "right": [
+        "id"
+      ]
+    },
+    {
+      "left": "OP",
+      "right": [
+        "num"
+      ]
+    }
+  ]
+}

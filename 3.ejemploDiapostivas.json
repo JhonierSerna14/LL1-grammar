@@ -2,59 +2,43 @@
   "initial": "E",
   "terminals": [
     "+",
+    "*",
     "id",
     "(",
-    ")",
-    "*"
+    ")"
   ],
   "nonTerminals": [
     "E",
-    "E'",
     "T",
-    "T'",
     "F"
   ],
   "productions": [
     {
       "left": "E",
       "right": [
-        "T",
-        "E'"
-      ]
-    },
-    {
-      "left": "E'",
-      "right": [
+        "E",
         "+",
-        "T",
-        "E'"
+        "T"
       ]
     },
     {
-      "left": "E'",
+      "left": "E",
       "right": [
-        "λ"
+        "T"
       ]
     },
     {
       "left": "T",
       "right": [
-        "F",
-        "T'"
-      ]
-    },
-    {
-      "left": "T'",
-      "right": [
+        "T",
         "*",
-        "F",
-        "T'"
+        "F"
       ]
     },
     {
-      "left": "T'",
+      "left": "T",
       "right": [
-        "λ"
+        "F"
       ]
     },
     {

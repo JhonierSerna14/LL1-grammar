@@ -7,8 +7,9 @@ import (
 )
 
 type GrammarController struct {
-	grammar  models.Grammar
-	maxDepth int16
+	grammar    models.Grammar
+	production models.Production
+	maxDepth   int16
 }
 
 func NewGrammarController() *GrammarController {
@@ -24,6 +25,7 @@ func (gc *GrammarController) SetGrammar(grammar models.Grammar) {
 	// When a grammar is created, all the processes are initialized automatically
 	gc.maxDepth = 1000
 	gc.grammar = grammar
+	gc.deleteRecursion()
 	gc.grammar.Firsts, e = gc.calculateFirsts()
 	if e != nil {
 		gc.error()
@@ -65,6 +67,36 @@ func (gc *GrammarController) GetFollows() map[string][]string {
 
 func (gc *GrammarController) IsLL1() string {
 	return gc.grammar.IsLL1
+}
+
+func (gc *GrammarController) deleteRecursion() {
+	var withRecursion = hasRecursion(gc.grammar) // We will do the procedure only for productions with recursion
+	for _, with := range withRecursion {
+		for i, production := range gc.grammar.Productions {
+			if production.Left == with { // We search the left symbol in all productions
+				if production.Left == production.Right[0] { // We find in the productions the production with recursion
+					var aux = production.Right // We make a copy to be able to empty the original production
+					production.Right = nil
+					production.Left = production.Left + "'" // We add ' to the symbol to differentiate it
+					for _, x := range aux[1:] {             // We change the order of production, avoiding the first symbol
+						production.Right = append(production.Right, x)
+					}
+					production.Right = append(production.Right, production.Left) // We add the symbol that initially produced the recursion
+					gc.grammar.Productions[i] = production                       // We add the modified production in the original position of the slice
+
+				} else {
+					// If the production does not generate recursion, the symbol with ' is added at the end
+					gc.grammar.Productions[i].Right = append(gc.grammar.Productions[i].Right, production.Left+"'")
+				}
+			}
+		}
+		var name = with + "'"
+		gc.grammar.NonTerminals = append(gc.grammar.NonTerminals, name) // We add the new production to the non-Terminals
+		var aux = gc.production
+		aux.Left = name
+		aux.Right = append(aux.Right, "λ")
+		gc.grammar.Productions = append(gc.grammar.Productions, aux) // We add λ as the rule indicates
+	}
 }
 
 func (gc *GrammarController) calculateFirsts() (map[string][]string, error) {
@@ -270,6 +302,27 @@ func (gc *GrammarController) isLL1(sets map[string][][]string) string {
 		}
 	}
 	return result
+}
+
+/*
+In this function we will search for all the symbols that generate recursion by left,
+we will search if the left part of the production is equal to the first symbol of its right part, thus generating a direct self-call.
+We return a slice with all the symbols that have recursion in any of their productions
+*/
+func hasRecursion(grammar models.Grammar) []string {
+	symbols := make([]string, 0)
+	for _, nonTerminal := range grammar.NonTerminals {
+		for _, production := range grammar.Productions {
+			if production.Left == nonTerminal {
+				if production.Left == production.Right[0] {
+					if !contains(symbols, production.Left) {
+						symbols = append(symbols, production.Left)
+					}
+				}
+			}
+		}
+	}
+	return symbols
 }
 
 func (gc *GrammarController) isTerminal(symbol string) bool {
