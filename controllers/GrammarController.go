@@ -4,6 +4,7 @@ import (
 	"Project/models"
 	"errors"
 	"fmt"
+	"reflect"
 )
 
 type GrammarController struct {
@@ -21,11 +22,12 @@ func (gc *GrammarController) GetGrammar() models.Grammar {
 }
 
 func (gc *GrammarController) SetGrammar(grammar models.Grammar) {
-	e := errors.New("")
 	// When a grammar is created, all the processes are initialized automatically
 	gc.maxDepth = 1000
 	gc.grammar = grammar
+	gc.removeFactorization()
 	gc.deleteRecursion()
+	e := errors.New("")
 	gc.grammar.Firsts, e = gc.calculateFirsts()
 	if e != nil {
 		gc.error()
@@ -69,16 +71,105 @@ func (gc *GrammarController) IsLL1() string {
 	return gc.grammar.IsLL1
 }
 
+func (gc *GrammarController) removeFactorization() {
+	productions := gc.findProductionsWithFactorization()
+	for _, p := range productions {
+		if len(p) > 1 {
+			maxLen := len(p[0].Right)     // We assign any amount as a guess
+			for i := 1; i < len(p); i++ { // We go through all the productions that have factorization
+				l := compareProductions(p[0], p[i]) // We look for the maximum number of characters that match from left to right
+				if l < maxLen {
+					maxLen = l // We assign the minimum number of matches
+				}
+			}
+			var name = gc.addQuoteToVariable(p[0].Left) // We add ' in the end of the original variable, and it's the new production that has the productions not repeated
+			// We create an auxiliary production in which we will store the variables that are repeated and at the end
+			// we will add a reference to a new production that will have what is not repeated
+			var aux models.Production
+			aux.Left = p[0].Left
+			for _, q := range p[0].Right[0:maxLen] {
+				aux.Right = append(aux.Right, q)
+			}
+			aux.Right = append(aux.Right, name)
+			gc.grammar.Productions = append(gc.grammar.Productions, aux) // We add the new modified production to the list
+
+			// The new production will have everything that is not repeated in the with factorization productions
+			var aux2 models.Production
+			aux2.Left = name
+			gc.grammar.NonTerminals = append(gc.grammar.NonTerminals, aux2.Left)
+			for _, in := range p {
+				for _, in2 := range in.Right[maxLen:] { // We send the slice in such a way that the common symbols are not added again
+					aux2.Right = append(aux2.Right, in2)
+				}
+				if aux2.Right == nil {
+					// The case in which removing the repeated symbols leaves the slice empty, so we must allow a λ in the new production
+					aux2.Right = append(aux2.Right, "λ")
+				}
+				gc.grammar.Productions = append(gc.grammar.Productions, aux2)
+				aux2.Right = nil
+
+				gc.removeProductionByValue(in) // Delete the original productions
+			}
+		}
+	}
+}
+
+func (gc *GrammarController) findProductionsWithFactorization() [][]models.Production {
+	var with = gc.symbolsWithFactorization()
+	var aux = make(map[string][]models.Production)
+	for _, nonTerminal := range with {
+		for _, production := range gc.GetProductions() {
+			if nonTerminal == production.Left {
+				firstChar := production.Right[0]
+				if _, ok := aux[firstChar]; !ok {
+					aux[firstChar] = []models.Production{production}
+				} else {
+					aux[firstChar] = append(aux[firstChar], production)
+				}
+			}
+		}
+	}
+
+	var result = make([][]models.Production, 0)
+	for _, productions := range aux {
+		if len(productions) > 1 {
+			result = append(result, productions)
+		}
+	}
+	return result
+}
+
+func (gc *GrammarController) symbolsWithFactorization() []string {
+	var withFactorization = make([]string, 0)
+	for _, nonTerminal := range gc.GetNonTerminals() {
+		var aux = make([]string, 0)
+		for _, production := range gc.GetProductions() {
+			if nonTerminal == production.Left {
+				if !contains(aux, production.Right[0]) {
+					aux = append(aux, production.Right[0])
+				} else {
+					if !contains(withFactorization, production.Left) {
+						withFactorization = append(withFactorization, production.Left)
+					}
+				}
+			}
+		}
+	}
+	return withFactorization
+}
+
 func (gc *GrammarController) deleteRecursion() {
 	var withRecursion = hasRecursion(gc.grammar) // We will do the procedure only for productions with recursion
 	for _, with := range withRecursion {
+		var name = ""
 		for i, production := range gc.grammar.Productions {
 			if production.Left == with { // We search the left symbol in all productions
 				if production.Left == production.Right[0] { // We find in the productions the production with recursion
 					var aux = production.Right // We make a copy to be able to empty the original production
 					production.Right = nil
-					production.Left = production.Left + "'" // We add ' to the symbol to differentiate it
-					for _, x := range aux[1:] {             // We change the order of production, avoiding the first symbol
+					name = gc.addQuoteToVariable(production.Left) // We add ' to the symbol to differentiate it
+					production.Left = name
+					for _, x := range aux[1:] { // We change the order of production, avoiding the first symbol
 						production.Right = append(production.Right, x)
 					}
 					production.Right = append(production.Right, production.Left) // We add the symbol that initially produced the recursion
@@ -86,11 +177,15 @@ func (gc *GrammarController) deleteRecursion() {
 
 				} else {
 					// If the production does not generate recursion, the symbol with ' is added at the end
-					gc.grammar.Productions[i].Right = append(gc.grammar.Productions[i].Right, production.Left+"'")
+					if gc.grammar.Productions[i].Right[0] != "λ" {
+						if name == "" {
+							name = gc.addQuoteToVariable(production.Left) // We add ' to the symbol to differentiate it
+						}
+						gc.grammar.Productions[i].Right = append(gc.grammar.Productions[i].Right, name)
+					}
 				}
 			}
 		}
-		var name = with + "'"
 		gc.grammar.NonTerminals = append(gc.grammar.NonTerminals, name) // We add the new production to the non-Terminals
 		var aux = gc.production
 		aux.Left = name
@@ -353,4 +448,54 @@ func (gc *GrammarController) error() {
 	gc.grammar.Follows = nil
 	gc.grammar.PredictionSet = nil
 	gc.grammar.IsLL1 = "Not LL1, There is a cycle in the symbols"
+}
+
+func compareProductions(p1, p2 models.Production) int {
+	len1 := len(p1.Right)
+	len2 := len(p2.Right)
+
+	minLen := len1
+	if len2 < len1 {
+		minLen = len2
+	}
+
+	for i := 0; i < minLen; i++ {
+		if p1.Right[i] != p2.Right[i] {
+			return i
+		}
+	}
+
+	return minLen
+}
+
+// The function receives a variable name to which apostrophes will be added at the end,
+// if the variable with an apostrophe already exists, another one will be added until the variable does not exist
+func (gc *GrammarController) addQuoteToVariable(name string) string {
+	newName := name + "'"
+	for gc.variableExists(newName) {
+		newName += "'"
+	}
+	return newName
+}
+
+func (gc *GrammarController) variableExists(name string) bool {
+	for _, production := range gc.grammar.Productions {
+		if production.Left == name {
+			return true
+		}
+	}
+	return false
+}
+
+func (gc *GrammarController) removeProductionByValue(prod models.Production) {
+	for i, p := range gc.grammar.Productions {
+		if reflect.DeepEqual(p, prod) {
+			gc.removeProduction(i)
+			break
+		}
+	}
+}
+
+func (gc *GrammarController) removeProduction(index int) {
+	gc.grammar.Productions = append(gc.grammar.Productions[:index], gc.grammar.Productions[index+1:]...)
 }

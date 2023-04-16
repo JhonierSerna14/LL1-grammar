@@ -19,7 +19,7 @@ func main() {
 
 func openJson() models.Grammar {
 	// Open window to select file
-	filename, _, err := dlgs.File("Seleccione un archivo", "", false)
+	filename, _, err := dlgs.File("Choose a file", "", false)
 	if err != nil {
 		log.Fatal(err)
 	}

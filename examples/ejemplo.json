@@ -1,0 +1,15 @@
+{
+  "initial": "",
+  "terminals": [
+  ],
+  "nonTerminals": [
+  ],
+  "productions": [
+    {
+      "left": "",
+      "right": [
+        "λ"
+      ]
+    }
+  ]
+}

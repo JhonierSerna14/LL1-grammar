@@ -22,8 +22,6 @@
     "C",
     "S",
     "REL",
-    "REL'",
-    "REL''",
     "OP"
   ],
   "productions": [
@@ -110,51 +108,39 @@
     {
       "left": "REL",
       "right": [
-        "<",
-        "REL'"
+        "="
+      ]
+    },
+    {
+      "left": "REL",
+      "right": [
+        "<"
+      ]
+    },
+    {
+      "left": "REL",
+      "right": [
+        "<="
+      ]
+    },
+    {
+      "left": "REL",
+      "right": [
+        ">"
       ]
     },
     {
       "left": "REL",
       "right": [
         ">",
-        "REL''"
+        "="
       ]
     },
     {
       "left": "REL",
       "right": [
-        "="
-      ]
-    },
-    {
-      "left": "REL'",
-      "right": [
-        "="
-      ]
-    },
-    {
-      "left": "REL'",
-      "right": [
+        "<",
         ">"
-      ]
-    },
-    {
-      "left": "REL'",
-      "right": [
-        "λ"
-      ]
-    },
-    {
-      "left": "REL''",
-      "right": [
-        "="
-      ]
-    },
-    {
-      "left": "REL''",
-      "right": [
-        "λ"
       ]
     },
     {
