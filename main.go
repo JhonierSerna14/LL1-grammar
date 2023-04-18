@@ -54,7 +54,7 @@ func exportToJSON(grammar models.Grammar) error {
 	encoder.SetEscapeHTML(false)
 	encoder.SetIndent("", "    ")
 	err = encoder.Encode(grammar)
-	var command = exec.Command("cmd", "/C", "start", "opera", fileName+"/Result.json")
+	var command = exec.Command("cmd", "/C", "start", "msedge", fileName+"/Result.json")
 	err = command.Start()
 	if err != nil {
 		return err

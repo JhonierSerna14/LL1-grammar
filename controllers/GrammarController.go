@@ -190,7 +190,7 @@ func (gc *GrammarController) deleteRecursion() {
 		var aux = gc.production
 		aux.Left = name
 		aux.Right = append(aux.Right, "λ")
-		gc.grammar.Productions = append(gc.grammar.Productions, aux) // We add λ as the rule indicates
+		gc.grammar.Productions = append(gc.grammar.Productions, aux) // We add a new production with λ as the rule indicates
 	}
 }
 
@@ -207,14 +207,11 @@ func (gc *GrammarController) calculateFirsts() (map[string][]string, error) {
 }
 
 /*
-This function receives a non-terminal symbol as a parameter and searches it among all the productions of the grammar
+calculateFirst: This function receives a non-terminal symbol as a parameter and searches it among all the productions of the grammar
 to then find the first production (The first position of production.right) and evaluate if it is terminal or not,
 it uses recursion to find the first ones of a non-terminal symbol.
 */
 func (gc *GrammarController) calculateFirst(nonTerminal string, depth int16) ([]string, error) {
-	if depth > gc.maxDepth {
-		return nil, fmt.Errorf("maximum depth exceeded")
-	}
 	if depth > gc.maxDepth {
 		return nil, fmt.Errorf("maximum depth exceeded")
 	}
@@ -256,7 +253,7 @@ func (gc *GrammarController) calculateFollows() (map[string][]string, error) {
 }
 
 /*
-This function takes as a parameter a non-terminal symbol, which it searches on the right side of all productions, applies two rules:
+calculateFollow: This function takes as a parameter a non-terminal symbol, which it searches on the right side of all productions, applies two rules:
 - If the following is not terminal, add his firsts
 - If the following is λ add his followings
 the function uses recursion to find the follows of the non-terminal symbol
@@ -334,7 +331,7 @@ func (gc *GrammarController) calculatePredictionSet() map[string][][]string {
 }
 
 /*
-In this function, we will find the prediction set of a production following 3 rules:
+calculatePrediction: In this function, we will find the prediction set of a production following 3 rules:
 - If the first of the production is terminal, it is added to the productions
 - If the first of the production is not terminal, we find its first
 - In case of λ we find the following
@@ -344,7 +341,6 @@ We create a slice for each production to then intersect and check if a non-termi
 func (gc *GrammarController) calculatePrediction(production models.Production) []string {
 	prediction := make([]string, 0)
 
-	// If the non-terminal symbol has an output that begins with a terminal, that terminal is a first
 	if gc.isTerminal(production.Right[0]) {
 		if production.Right[0] == "λ" { // We add the follows if the firsts are λ
 			aux := gc.grammar.Follows[production.Left] // Search in the maps, in this way we avoid calculating again
@@ -362,15 +358,16 @@ func (gc *GrammarController) calculatePrediction(production models.Production) [
 		symbols, _ := gc.calculateFirst(production.Right[0], 0)
 		for _, symbol := range symbols {
 			if symbol == "λ" {
-				aux := gc.grammar.Follows[production.Right[0]]
-				for _, symbol := range aux {
-					if !contains(prediction, symbol) {
-						prediction = append(prediction, symbol)
+				aux := gc.grammar.Follows[production.Left]
+				for _, sym := range aux {
+					if !contains(prediction, sym) {
+						prediction = append(prediction, sym)
 					}
 				}
-			}
-			if !contains(prediction, symbol) {
-				prediction = append(prediction, symbol)
+			} else {
+				if !contains(prediction, symbol) {
+					prediction = append(prediction, symbol)
+				}
 			}
 		}
 	}
